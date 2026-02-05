@@ -1,0 +1,43 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+dist
+.next
+.turbo
+out
+build
+
+# Generated files
+*.generated.*
+.prisma
+prisma/client
+
+# Caches
+.cache
+*.tsbuildinfo
+
+# Logs
+*.log
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# IDE
+.idea
+.vscode
+
+# Environment
+.env*
+!.env.example
+
+# Coverage
+coverage
+
+# Misc
+.DS_Store
+*.min.js
+*.min.css

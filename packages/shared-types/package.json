@@ -1,0 +1,37 @@
+{
+  "name": "@repo/shared-types",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shared TypeScript types for ticket-platform",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./api": {
+      "types": "./dist/api.d.ts",
+      "import": "./dist/api.mjs",
+      "require": "./dist/api.js"
+    },
+    "./socket": {
+      "types": "./dist/socket.d.ts",
+      "import": "./dist/socket.mjs",
+      "require": "./dist/socket.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/api.ts src/socket.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts src/api.ts src/socket.ts --format cjs,esm --dts --watch",
+    "clean": "rm -rf dist",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "tsup": "^8.0.0",
+    "typescript": "^5.9.2"
+  }
+}

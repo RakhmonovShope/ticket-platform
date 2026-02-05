@@ -1,135 +1,191 @@
-# Turborepo starter
+# Ticket Platform
 
-This Turborepo starter is maintained by the Turborepo core team.
+A real-time ticket booking platform with interactive seat selection, built with modern technologies.
 
-## Using this example
+## Tech Stack
 
-Run the following command:
+### Frontend
+- **React 18** - UI library
+- **Next.js 16** - React framework
+- **TypeScript** - Type safety
+- **TailwindCSS** - Styling
+- **Zustand** - State management
+- **React Query** - Server state
+- **Socket.io-client** - Real-time updates
 
-```sh
-npx create-turbo@latest
-```
+### Backend
+- **Node.js** - Runtime
+- **Express** - HTTP server
+- **TypeScript** - Type safety
+- **Prisma** - ORM
+- **PostgreSQL** - Database
+- **Redis** - Caching & sessions
+- **Socket.io** - Real-time server
 
-## What's inside?
+### Infrastructure
+- **pnpm** - Package manager
+- **Turborepo** - Monorepo build system
+- **Docker** - Containerization
+- **GitHub Actions** - CI/CD
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
+## Project Structure
 
 ```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+ticket-platform/
+├── apps/
+│   ├── web/              # Next.js frontend
+│   ├── api/              # Express backend
+│   └── docs/             # Documentation site
+├── packages/
+│   ├── ui/               # Shared UI components
+│   ├── database/         # Prisma schema & client
+│   ├── shared-types/     # Shared TypeScript types
+│   ├── eslint-config/    # ESLint configurations
+│   └── typescript-config/# TypeScript configurations
+├── docker-compose.yml    # Local development services
+├── turbo.json           # Turborepo configuration
+└── pnpm-workspace.yaml  # Workspace configuration
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+## Quick Start
+
+### Prerequisites
+
+- Node.js >= 18
+- pnpm >= 9
+- Docker & Docker Compose (for local services)
+
+### Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-org/ticket-platform.git
+   cd ticket-platform
+   ```
+
+2. **Install dependencies**
+   ```bash
+   pnpm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+4. **Start local services (PostgreSQL & Redis)**
+   ```bash
+   pnpm docker:up
+   ```
+
+5. **Set up the database**
+   ```bash
+   pnpm db:push      # Push schema to database
+   pnpm db:seed      # Seed with sample data (optional)
+   ```
+
+6. **Start development servers**
+   ```bash
+   pnpm dev
+   ```
+
+   This starts:
+   - Web frontend at http://localhost:3000
+   - API backend at http://localhost:3001
+   - WebSocket server at ws://localhost:3001
+
+## Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `pnpm dev` | Start all apps in development mode |
+| `pnpm build` | Build all apps for production |
+| `pnpm lint` | Lint all packages |
+| `pnpm test` | Run tests |
+| `pnpm format` | Format code with Prettier |
+| `pnpm db:generate` | Generate Prisma client |
+| `pnpm db:push` | Push schema to database |
+| `pnpm db:migrate` | Run migrations |
+| `pnpm db:studio` | Open Prisma Studio |
+| `pnpm docker:up` | Start Docker services |
+| `pnpm docker:down` | Stop Docker services |
+| `pnpm clean` | Clean build artifacts |
+
+## Features
+
+### Venue Management
+- Create and manage venues with custom seat layouts
+- Visual venue designer with drag-and-drop
+- Support for multiple sections and seat types
+
+### Session Management
+- Create events/sessions for venues
+- Set session times and status
+- Automatic seat duplication from venue
+
+### Tariff System
+- Multiple pricing tiers per session
+- Visual seat-to-tariff assignment
+- Auto-assign strategies
+
+### Real-time Booking
+- Interactive seat map with live updates
+- 10-minute reservation timeout
+- WebSocket-powered seat status sync
+
+### Payments
+- Payme integration (Uzbekistan)
+- Click integration (Uzbekistan)
+- Full and partial refunds
+- Sandbox mode for testing
+
+## Environment Variables
+
+See [.env.example](.env.example) for all available configuration options.
+
+## Docker Services
+
+```bash
+# Start core services (PostgreSQL + Redis)
+pnpm docker:up
+
+# Start with admin tools (pgAdmin, Redis Commander, Mailhog)
+docker compose --profile tools up -d
+
+# View logs
+pnpm docker:logs
+
+# Stop services
+pnpm docker:down
+```
+
+### Service Ports
+- PostgreSQL: 5432
+- Redis: 6379
+- pgAdmin: 5050 (when using tools profile)
+- Redis Commander: 8081 (when using tools profile)
+- Mailhog: 8025 (when using tools profile)
+
+## Contributing
+
+1. Create a feature branch from `develop`
+2. Make your changes
+3. Run `pnpm lint && pnpm test`
+4. Create a pull request
+
+### Commit Convention
+
+We use [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+<type>(<scope>): <subject>
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+[optional body]
 ```
 
-### Develop
+Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
 
-To develop all apps and packages, run the following command:
+## License
 
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+MIT

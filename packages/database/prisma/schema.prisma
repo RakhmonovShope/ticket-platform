@@ -1,0 +1,369 @@
+// Prisma schema for Ticket Booking Platform
+// Seats are created per-session (copied from venue schema)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  USER
+}
+
+enum SessionStatus {
+  DRAFT
+  ACTIVE
+  SOLD_OUT
+  CANCELLED
+  COMPLETED
+}
+
+enum SeatShape {
+  RECTANGLE
+  CIRCLE
+  POLYGON
+}
+
+enum SeatStatus {
+  AVAILABLE
+  RESERVED
+  OCCUPIED
+  DISABLED
+  HIDDEN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentProvider {
+  PAYME
+  CLICK
+  UZCARD
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ============================================================================
+// USER
+// ============================================================================
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  role         UserRole  @default(USER)
+  phone        String?
+  passwordHash String
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  bookings     Booking[]
+  payments     Payment[]
+
+  @@index([email])
+  @@index([role])
+}
+
+// ============================================================================
+// VENUE
+// ============================================================================
+
+model Venue {
+  id          String   @id @default(cuid())
+  name        String
+  address     String
+  description String?
+  
+  // JSON schema defining seat layout template
+  // This gets copied to Session.seats when a session is created
+  schema      Json
+  
+  capacity    Int
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  sessions    Session[]
+
+  @@index([isActive])
+}
+
+// ============================================================================
+// SESSION (Event)
+// ============================================================================
+
+model Session {
+  id          String        @id @default(cuid())
+  venueId     String
+  name        String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  status      SessionStatus @default(DRAFT)
+  isActive    Boolean       @default(true)
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  venue       Venue         @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  seats       Seat[]
+  tariffs     Tariff[]
+  bookings    Booking[]
+
+  @@index([venueId])
+  @@index([status])
+  @@index([startTime])
+  @@index([isActive])
+}
+
+// ============================================================================
+// SEAT
+// ============================================================================
+
+model Seat {
+  id        String     @id @default(cuid())
+  sessionId String
+  
+  // Seat identification
+  row       String
+  number    String
+  section   String?
+  
+  // Coordinates and dimensions for visual rendering
+  x         Float
+  y         Float
+  width     Float?
+  height    Float?
+  
+  // Shape and rotation
+  shape     SeatShape  @default(RECTANGLE)
+  rotation  Float?     @default(0)
+  
+  // Availability status
+  status    SeatStatus @default(AVAILABLE)
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  session     Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tariffs     TariffSeat[]
+  bookings    Booking[]
+
+  // Composite unique key: one seat per row/number in a session
+  @@unique([sessionId, row, number])
+  @@index([sessionId])
+  @@index([status])
+}
+
+// ============================================================================
+// TARIFF (Pricing Tier)
+// ============================================================================
+
+model Tariff {
+  id          String   @id @default(cuid())
+  sessionId   String
+  name        String
+  price       Decimal  @db.Decimal(12, 2)
+  color       String?  // Hex color for UI display
+  description String?
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  session     Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  seats       TariffSeat[]
+
+  @@index([sessionId])
+  @@index([isActive])
+}
+
+// ============================================================================
+// TARIFF-SEAT JUNCTION (Many-to-Many)
+// ============================================================================
+
+model TariffSeat {
+  id       String @id @default(cuid())
+  tariffId String
+  seatId   String
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  tariff   Tariff @relation(fields: [tariffId], references: [id], onDelete: Cascade)
+  seat     Seat   @relation(fields: [seatId], references: [id], onDelete: Cascade)
+
+  @@unique([tariffId, seatId])
+  @@index([tariffId])
+  @@index([seatId])
+}
+
+// ============================================================================
+// BOOKING
+// ============================================================================
+
+model Booking {
+  id         String        @id @default(cuid())
+  sessionId  String
+  seatId     String
+  userId     String?       // Nullable for guest checkout
+  
+  // Guest information (when userId is null)
+  guestEmail String?
+  guestPhone String?
+  
+  status     BookingStatus @default(PENDING)
+  
+  // Expiration: should be createdAt + 10 minutes for PENDING bookings
+  // This is enforced in application code
+  expiresAt  DateTime
+  
+  // Price at time of booking
+  totalPrice Decimal       @db.Decimal(12, 2)
+
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  // Relations
+  session    Session       @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  seat       Seat          @relation(fields: [seatId], references: [id], onDelete: Restrict)
+  user       User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  payments   Payment[]
+
+  @@index([sessionId])
+  @@index([seatId])
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+// ============================================================================
+// PAYMENT
+// ============================================================================
+
+model Payment {
+  id         String          @id @default(cuid())
+  bookingId  String
+  userId     String?
+  
+  amount     Decimal         @db.Decimal(12, 2)
+  provider   PaymentProvider
+  status     PaymentStatus   @default(PENDING)
+  
+  // External transaction ID from payment provider
+  externalId String?
+  
+  // When payment was completed
+  paidAt     DateTime?
+  
+  // Refund fields
+  refundedAmount  Decimal?   @db.Decimal(12, 2)
+  refundedAt      DateTime?
+  refundReason    String?
+
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  // Relations
+  booking      Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user         User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  transactions PaymentTransaction[]
+
+  @@index([bookingId])
+  @@index([userId])
+  @@index([status])
+  @@index([externalId])
+}
+
+// ============================================================================
+// PAYMENT TRANSACTION LOG
+// ============================================================================
+
+enum TransactionType {
+  CREATE
+  CHECK
+  CONFIRM
+  CANCEL
+  REFUND
+  PREPARE    // Click prepare step
+  COMPLETE   // Click complete step
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  ERROR
+}
+
+model PaymentTransaction {
+  id           String            @id @default(cuid())
+  paymentId    String
+  provider     PaymentProvider
+  type         TransactionType
+  
+  // External transaction ID from provider
+  externalId   String?
+  
+  // Amount in smallest unit (tiyin for UZS)
+  amount       Decimal           @db.Decimal(12, 2)
+  
+  // Transaction status
+  status       TransactionStatus @default(PENDING)
+  
+  // Request/Response data for debugging
+  requestData  Json?
+  responseData Json?
+  
+  // Error information
+  errorCode    String?
+  errorMessage String?
+  
+  // Retry tracking
+  retryCount   Int               @default(0)
+  maxRetries   Int               @default(3)
+  
+  // Idempotency key to prevent double processing
+  idempotencyKey String?         @unique
+  
+  // Signature verification
+  signatureValid Boolean?
+  
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  // Relations
+  payment      Payment           @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+  @@index([provider])
+  @@index([externalId])
+  @@index([status])
+  @@index([createdAt])
+}
