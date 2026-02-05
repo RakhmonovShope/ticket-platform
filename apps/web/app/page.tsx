@@ -1,102 +1,137 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
+'use client';
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
-
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
-
-  return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
+import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div style={styles.container}>
+      <header style={styles.header}>
+        <h1 style={styles.title}>🎫 Ticket Platform</h1>
+        <p style={styles.subtitle}>Real-time ticket booking system</p>
+      </header>
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.dev/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
+      <main style={styles.main}>
+        <div style={styles.grid}>
+          {/* Admin Section */}
+          <Link href="/admin" style={styles.card}>
+            <div style={styles.cardIcon}>⚙️</div>
+            <h2 style={styles.cardTitle}>Admin Dashboard</h2>
+            <p style={styles.cardDesc}>Manage venues, sessions, and view analytics</p>
+          </Link>
+
+          {/* Venue Designer */}
+          <Link href="/admin/venues/designer" style={styles.card}>
+            <div style={styles.cardIcon}>🏛️</div>
+            <h2 style={styles.cardTitle}>Venue Designer</h2>
+            <p style={styles.cardDesc}>Create and edit venue seat layouts</p>
+          </Link>
+
+          {/* Sessions */}
+          <Link href="/admin/sessions" style={styles.card}>
+            <div style={styles.cardIcon}>📅</div>
+            <h2 style={styles.cardTitle}>Sessions</h2>
+            <p style={styles.cardDesc}>Manage events and tariff assignments</p>
+          </Link>
+
+          {/* Seat Map */}
+          <Link href="/booking" style={styles.card}>
+            <div style={styles.cardIcon}>🪑</div>
+            <h2 style={styles.cardTitle}>Seat Selection</h2>
+            <p style={styles.cardDesc}>Interactive seat map for booking</p>
+          </Link>
+
+          {/* Payments Test */}
+          <Link href="/admin/payments/test" style={styles.card}>
+            <div style={styles.cardIcon}>💳</div>
+            <h2 style={styles.cardTitle}>Payment Test</h2>
+            <p style={styles.cardDesc}>Test Payme and Click integrations</p>
+          </Link>
+
+          {/* API Health */}
+          <a href="http://localhost:3001/health" target="_blank" style={styles.card}>
+            <div style={styles.cardIcon}>🔌</div>
+            <h2 style={styles.cardTitle}>API Status</h2>
+            <p style={styles.cardDesc}>Check API server health</p>
           </a>
         </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
       </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.dev?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.dev →
-        </a>
+
+      <footer style={styles.footer}>
+        <p>Built with Next.js, Express, Prisma, Socket.io</p>
       </footer>
     </div>
   );
 }
+
+const styles: Record<string, React.CSSProperties> = {
+  container: {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    backgroundColor: '#f9fafb',
+  },
+  header: {
+    padding: '48px 24px',
+    textAlign: 'center',
+    backgroundColor: '#1f2937',
+    color: '#ffffff',
+  },
+  title: {
+    margin: 0,
+    fontSize: 36,
+    fontWeight: 700,
+  },
+  subtitle: {
+    margin: '8px 0 0',
+    fontSize: 18,
+    color: '#9ca3af',
+  },
+  main: {
+    flex: 1,
+    padding: '48px 24px',
+    maxWidth: 1200,
+    margin: '0 auto',
+    width: '100%',
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+    gap: 24,
+  },
+  card: {
+    display: 'flex',
+    flexDirection: 'column',
+    padding: 24,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    border: '1px solid #e5e7eb',
+    textDecoration: 'none',
+    color: 'inherit',
+    transition: 'transform 0.2s, box-shadow 0.2s',
+    cursor: 'pointer',
+  },
+  cardIcon: {
+    fontSize: 40,
+    marginBottom: 16,
+  },
+  cardTitle: {
+    margin: '0 0 8px',
+    fontSize: 20,
+    fontWeight: 600,
+    color: '#1f2937',
+  },
+  cardDesc: {
+    margin: 0,
+    fontSize: 14,
+    color: '#6b7280',
+    lineHeight: 1.5,
+  },
+  footer: {
+    padding: '24px',
+    textAlign: 'center',
+    borderTop: '1px solid #e5e7eb',
+    color: '#6b7280',
+    fontSize: 14,
+  },
+};
